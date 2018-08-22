@@ -1,4 +1,4 @@
-package core
+package blockchain
 
 import (
 	"github.com/DSiSc/evm-NG/common"
@@ -42,8 +42,8 @@ func (blockChain *BlockChain) StateAt(root common.Hash) (*state.CommonStateDB, e
 	return state.New(root, state.NewDatabase(blockChain.db))
 }
 
-// WriteBlockWithState writes the block and all associated state to the database.
-func (blockChain *BlockChain) WriteBlockWithState(block *pcommon.Block, state *state.CommonStateDB) (err error) {
+// WriteBlockWithState writes the block to the database.
+func (blockChain *BlockChain) WriteBlock(block *pcommon.Block) (err error) {
 	//TODO
 	return nil
 }
