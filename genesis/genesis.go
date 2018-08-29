@@ -16,10 +16,11 @@ type GenesisBlockConf struct {
 }
 
 type GensisBlock struct {
-	block     *types.Block
-	extraData []byte
+	Block     *types.Block
+	ExtraData []byte
 }
 
+// BuildGensisBlock build genesis block from genesis config file
 func BuildGensisBlock() (*GensisBlock, error) {
 	genesisHeader := &types.Header{
 		PrevBlockHash: types.Hash{},
@@ -33,11 +34,11 @@ func BuildGensisBlock() (*GensisBlock, error) {
 	}
 
 	genesisBlock := &GensisBlock{
-		block: &types.Block{
+		Block: &types.Block{
 			Header:       genesisHeader,
 			Transactions: make([]*types.Transaction, 0),
 		},
-		extraData: nil,
+		ExtraData: nil,
 	}
 
 	return genesisBlock, nil

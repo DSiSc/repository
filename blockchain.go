@@ -3,6 +3,7 @@ package blockchain
 import (
 	"fmt"
 	"github.com/DSiSc/blockchain/config"
+	"github.com/DSiSc/blockchain/genesis"
 	"github.com/DSiSc/blockstore"
 	blkconf "github.com/DSiSc/blockstore/config"
 	"github.com/DSiSc/craft/types"
@@ -30,6 +31,9 @@ const (
 func InitBlockChain(chainConfig config.BlockChainConfig) error {
 	switch chainConfig.PluginName {
 	case PLUGIN_LEVELDB:
+		if chainConfig.StateDataPath == chainConfig.BlockDataPath {
+			return fmt.Errorf("statedb path should be different with blockdb path")
+		}
 		// create statedb low level database.
 		levelDB, err := ethdb.NewLDBDatabase(chainConfig.StateDataPath, 0, 0)
 		if err != nil {
@@ -38,12 +42,11 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 		// create blockstore
 		bstore, err := blockstore.NewBlockStore(&blkconf.BlockStoreConfig{
 			PluginName: PLUGIN_LEVELDB,
-			DataPath:   chainConfig.StateDataPath,
+			DataPath:   chainConfig.BlockDataPath,
 		})
 		if err != nil {
 			return err
 		}
-
 		stateDiskDB = levelDB
 		globalBlockStore = bstore
 	case PLUGIN_MEMDB:
@@ -57,8 +60,40 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 			return err
 		}
 		globalBlockStore = bstore
+	default:
+		return fmt.Errorf("Unsupported plugin type ")
+	}
+
+	// init genesis block
+	currentHeight := globalBlockStore.GetCurrentBlockHeight()
+	if blockstore.INIT_BLOCK_HEIGHT == currentHeight {
+		return ResetBlockChain()
 	}
 	return nil
+}
+
+// reset blockchain to genesis state.
+func ResetBlockChain() error {
+	bc, err := NewBlockChainByHash(types.Hash{})
+	if err != nil {
+		return err
+	}
+	// build genesis block
+	genesis, err := genesis.BuildGensisBlock()
+	if err != nil {
+		return err
+	}
+
+	//TODO init chain genesis account info from genesis block. e.g. ext := genesis.ExtraData; bc.CreateAccount()...
+	genesisStateRoot := bc.IntermediateRoot(false)
+	if err != nil {
+		return err
+	}
+
+	// write block to chain.
+	block := genesis.Block
+	block.Header.StateRoot = genesisStateRoot
+	return bc.WriteBlock(block)
 }
 
 // BlockChain is the chain manager.
@@ -101,6 +136,12 @@ func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 
 // WriteBlockWithState writes the block to the database.
 func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
+	// write state to database
+	_, err := blockChain.commit(false)
+	if err != nil {
+		return err
+	}
+
 	// write block to block store
 	return blockChain.blockStore.WriteBlock(block)
 }
@@ -245,7 +286,7 @@ func (blockChain *BlockChain) AddLog(interface{}) {
 }
 
 // Commit writes the state to the underlying in-memory trie database.
-func (blockChain *BlockChain) Commit(deleteEmptyObjects bool) (root types.Hash, err error) {
+func (blockChain *BlockChain) commit(deleteEmptyObjects bool) (root types.Hash, err error) {
 	//commit statedb
 	stateRoot, err := blockChain.state.Commit(false)
 	if err != nil {
