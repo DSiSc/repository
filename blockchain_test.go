@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"github.com/DSiSc/blockchain/config"
 	"github.com/DSiSc/craft/types"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,7 @@ func TestMain(m *testing.M) {
 	}
 	err := InitBlockChain(chainConfig)
 	if err != nil {
+		fmt.Print(err)
 		os.Exit(1)
 	}
 	m.Run()
