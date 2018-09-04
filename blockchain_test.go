@@ -10,6 +10,9 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	// init event center
+	types.GlobalEventCenter = &eventCenter{}
+
 	chainConfig := config.BlockChainConfig{
 		PluginName:    PLUGIN_MEMDB,
 		StateDataPath: "/tmp/state",
@@ -112,4 +115,32 @@ func TestBlockChain_WriteBlock(t *testing.T) {
 	err = bc.WriteBlock(block)
 	assert.Nil(err)
 	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+}
+
+type eventCenter struct {
+}
+
+// subscriber subscribe specified eventType with eventFunc
+func (*eventCenter) Subscribe(eventType types.EventType, eventFunc types.EventFunc) types.Subscriber {
+	return nil
+}
+
+// subscriber unsubscribe specified eventType
+func (*eventCenter) UnSubscribe(eventType types.EventType, subscriber types.Subscriber) (err error) {
+	return nil
+}
+
+// notify subscriber of eventType
+func (*eventCenter) Notify(eventType types.EventType, value interface{}) (err error) {
+	return nil
+}
+
+// notify specified eventFunc
+func (*eventCenter) NotifySubscriber(eventFunc types.EventFunc, value interface{}) {
+
+}
+
+// notify subscriber traversing all events
+func (*eventCenter) NotifyAll() (errs []error) {
+	return nil
 }

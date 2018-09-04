@@ -151,11 +151,19 @@ func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
 	// write state to database
 	_, err := blockChain.commit(false)
 	if err != nil {
+		types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
 		return err
 	}
 
 	// write block to block store
-	return blockChain.blockStore.WriteBlock(block)
+	err = blockChain.blockStore.WriteBlock(block)
+	if err != nil {
+		types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
+		return err
+	} else {
+		types.GlobalEventCenter.Notify(types.EventBlockCommitted, block)
+	}
+	return nil
 }
 
 // GetBlockByHash retrieves a block from the local chain.
