@@ -119,6 +119,18 @@ func NewLatestStateBlockChain() (*BlockChain, error) {
 	}
 }
 
+// NewLatestStateBlockChain create a blockchain with specified block hash.
+func NewBlockChainByBlockHash(blockHash types.Hash) (*BlockChain, error) {
+	if stateDiskDB == nil || globalBlockStore == nil {
+		return nil, fmt.Errorf("BlockChain have not been initialized.")
+	}
+	block, err := globalBlockStore.GetBlockByHash(blockHash)
+	if err != nil {
+		return nil, fmt.Errorf("Can not find the block with specified hash: %s.", blockHash)
+	}
+	return NewBlockChainByHash(block.Header.StateRoot)
+}
+
 // NewBlockChain returns a blockchain instance with specified hash.
 func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 	if stateDiskDB == nil || globalBlockStore == nil {

@@ -71,6 +71,20 @@ func TestNewLatestStateBlockChain(t *testing.T) {
 	assert.NotNil(bc)
 }
 
+// test new blockchain by block hash
+func TestNewBlockChainByBlockHash(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+	currentBlock := bc.GetCurrentBlock()
+	blockHash := currentBlock.HeaderHash
+	bc, err = NewBlockChainByBlockHash(blockHash)
+	assert.Nil(err)
+	assert.NotNil(bc)
+	assert.Equal(currentBlock.Header.StateRoot, bc.IntermediateRoot(false))
+}
+
 // test new blockchain by hash
 func TestNewBlockChainByHash(t *testing.T) {
 	assert := assert.New(t)
