@@ -1,6 +1,8 @@
 package blockchain
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"github.com/DSiSc/blockchain/config"
 	"github.com/DSiSc/craft/types"
@@ -81,7 +83,7 @@ func TestNewBlockChainByBlockHash(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(bc)
 	currentBlock := bc.GetCurrentBlock()
-	blockHash := currentBlock.HeaderHash
+	blockHash := blockHash(currentBlock)
 	bc, err = NewBlockChainByBlockHash(blockHash)
 	assert.Nil(err)
 	assert.NotNil(bc)
@@ -115,6 +117,20 @@ func TestBlockChain_WriteBlock(t *testing.T) {
 	err = bc.WriteBlock(block)
 	assert.Nil(err)
 	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+}
+
+// BlockHash calculate block's hash
+func blockHash(block *types.Block) (hash types.Hash) {
+	jsonByte, _ := json.Marshal(block)
+	sumByte := sum(jsonByte)
+	copy(hash[:], sumByte)
+	return
+}
+
+// Sum returns the first 20 bytes of SHA256 of the bz.
+func sum(bz []byte) []byte {
+	hash := sha256.Sum256(bz)
+	return hash[:types.HashLength]
 }
 
 type eventCenter struct {
