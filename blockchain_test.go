@@ -4,9 +4,11 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/DSiSc/blockchain/common"
 	"github.com/DSiSc/blockchain/config"
 	"github.com/DSiSc/craft/types"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"os"
 	"testing"
 )
@@ -64,8 +66,13 @@ func TestInitBlockChain_WithFileDB(t *testing.T) {
 // test reset chain
 func TestResetBlockChain(t *testing.T) {
 	assert := assert.New(t)
-	err := ResetBlockChain()
+	err := ResetBlockChain("")
 	assert.Nil(err)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+	balance := bc.GetBalance(common.HexToAddress("0x0000000000000000000000000000000000000000"))
+	assert.Equal(0, balance.Cmp(big.NewInt(100000000)))
 }
 
 // test new latest blockchain

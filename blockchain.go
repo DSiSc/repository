@@ -67,28 +67,31 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 	// init genesis block
 	currentHeight := globalBlockStore.GetCurrentBlockHeight()
 	if blockstore.INIT_BLOCK_HEIGHT == currentHeight {
-		return ResetBlockChain()
+		return ResetBlockChain(chainConfig.GenesisFile)
 	}
 	return nil
 }
 
 // reset blockchain to genesis state.
-func ResetBlockChain() error {
+func ResetBlockChain(genesisPath string) error {
 	bc, err := NewBlockChainByHash(types.Hash{})
 	if err != nil {
 		return err
 	}
 	// build genesis block
-	genesis, err := genesis.BuildGensisBlock()
+	genesis, err := genesis.BuildGensisBlock(genesisPath)
 	if err != nil {
 		return err
 	}
 
-	//TODO init chain genesis account info from genesis block. e.g. ext := genesis.ExtraData; bc.CreateAccount()...
-	genesisStateRoot := bc.IntermediateRoot(false)
-	if err != nil {
-		return err
+	// record genesis account
+	for _, account := range genesis.GenesisAccounts {
+		if account.Balance.Cmp(big.NewInt(0)) == 1 {
+			bc.CreateAccount(account.Addr)
+			bc.SetBalance(account.Addr, account.Balance)
+		}
 	}
+	genesisStateRoot := bc.IntermediateRoot(false)
 
 	// write block to chain.
 	block := genesis.Block
