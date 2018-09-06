@@ -153,17 +153,20 @@ func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
 	// write state to database
 	_, err := blockChain.commit(false)
-	if err != nil {
+	if err != nil && block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
 		types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
 		return err
 	}
 
 	// write block to block store
 	err = blockChain.blockStore.WriteBlock(block)
-	if err != nil {
+	if err != nil && block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
 		types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
 		return err
-	} else {
+	}
+
+	// send block commit event if it is not the genesis block.
+	if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
 		types.GlobalEventCenter.Notify(types.EventBlockCommitted, block)
 	}
 	return nil
