@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/DSiSc/blockchain/common"
+	"github.com/DSiSc/craft/log"
 	"github.com/DSiSc/craft/types"
 	"math/big"
 	"os"
@@ -27,8 +28,10 @@ type GensisBlock struct {
 // if the genesis config file is not specified, build default genesis block
 func BuildGensisBlock(genesisPath string) (*GensisBlock, error) {
 	if len(genesisPath) != 0 {
+		log.Info("Build genesis block from genesis file: %s", genesisPath)
 		return buildGenesisFromConfig(genesisPath)
 	} else {
+		log.Info("Start building default genesis block")
 		return buildDefaultGenesis()
 	}
 }
@@ -37,13 +40,15 @@ func BuildGensisBlock(genesisPath string) (*GensisBlock, error) {
 func buildGenesisFromConfig(genesisPath string) (*GensisBlock, error) {
 	file, err := os.Open(genesisPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read genesis file: %v", err)
+		log.Error("Failed to open genesis file, as: %v", err)
+		return nil, fmt.Errorf("Failed to open genesis file, as: %v ", err)
 	}
 	defer file.Close()
 
 	genesis := new(GensisBlock)
 	if err := json.NewDecoder(file).Decode(genesis); err != nil {
-		return nil, fmt.Errorf("failed to parse genesis file: %v", err)
+		log.Error("Failed to parse genesis file, as: %v", err)
+		return nil, fmt.Errorf("Failed to parse genesis file, as: %v ", err)
 	}
 	return genesis, nil
 }

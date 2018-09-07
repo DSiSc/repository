@@ -6,6 +6,7 @@ import (
 	"github.com/DSiSc/blockchain/genesis"
 	"github.com/DSiSc/blockstore"
 	blkconf "github.com/DSiSc/blockstore/config"
+	"github.com/DSiSc/craft/log"
 	"github.com/DSiSc/craft/types"
 	"github.com/DSiSc/statedb-NG"
 	"github.com/DSiSc/statedb-NG/ethdb"
@@ -29,14 +30,17 @@ const (
 
 // InitBlockChain init blockchain module config.
 func InitBlockChain(chainConfig config.BlockChainConfig) error {
+	log.Info("Start initializing block chain")
 	switch chainConfig.PluginName {
 	case PLUGIN_LEVELDB:
 		if chainConfig.StateDataPath == chainConfig.BlockDataPath {
+			log.Error("Statedb path should be different with Blockdb path")
 			return fmt.Errorf("statedb path should be different with blockdb path")
 		}
 		// create statedb low level database.
 		levelDB, err := ethdb.NewLDBDatabase(chainConfig.StateDataPath, 0, 0)
 		if err != nil {
+			log.Error("Failed to create levelDB for Statedb, as: %v", err)
 			return err
 		}
 		// create blockstore
@@ -45,6 +49,7 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 			DataPath:   chainConfig.BlockDataPath,
 		})
 		if err != nil {
+			log.Error("Failed to create file-based block store, as: %v", err)
 			return err
 		}
 		stateDiskDB = levelDB
@@ -57,16 +62,20 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 			DataPath:   "",
 		})
 		if err != nil {
+			log.Error("Failed to create memory-based block store, as: %v", err)
 			return err
 		}
 		globalBlockStore = bstore
 	default:
-		return fmt.Errorf("unsupported plugin type")
+		log.Error("Unsupported plugin type: %s ", chainConfig.PluginName)
+		return fmt.Errorf("Unsupported plugin type: %s ", chainConfig.PluginName)
 	}
 
 	// init genesis block
 	currentHeight := globalBlockStore.GetCurrentBlockHeight()
+	log.Info("Current block height %d", currentHeight)
 	if blockstore.INIT_BLOCK_HEIGHT == currentHeight {
+		log.Info("There are no blocks in block store, we will reset the chain to genesis state")
 		return ResetBlockChain(chainConfig.GenesisFile)
 	}
 	return nil
@@ -74,13 +83,16 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 
 // reset blockchain to genesis state.
 func ResetBlockChain(genesisPath string) error {
+	log.Info("Start resetting chain with genesis block file: %s", genesisPath)
 	bc, err := NewBlockChainByHash(types.Hash{})
 	if err != nil {
+		log.Error("Failed to create init-state block chain, as: %v", err)
 		return err
 	}
 	// build genesis block
 	genesis, err := genesis.BuildGensisBlock(genesisPath)
 	if err != nil {
+		log.Error("Failed to build genesis block, as: %v", err)
 		return err
 	}
 
@@ -96,7 +108,13 @@ func ResetBlockChain(genesisPath string) error {
 	// write block to chain.
 	block := genesis.Block
 	block.Header.StateRoot = genesisStateRoot
-	return bc.WriteBlock(block)
+	err = bc.WriteBlock(block)
+	if err != nil {
+		log.Error("Failed to write genesis block to block store, as:%v", err)
+		return err
+	} else {
+		return nil
+	}
 }
 
 // BlockChain is the chain manager.
@@ -111,11 +129,14 @@ type BlockChain struct {
 
 // NewLatestStateBlockChain create a blockchain with latest state hash.
 func NewLatestStateBlockChain() (*BlockChain, error) {
+	log.Info("Create block chain at the latest height")
 	if stateDiskDB == nil || globalBlockStore == nil {
-		return nil, fmt.Errorf("blockChain have not been initialized")
+		log.Error("BlockChain have not been initialized")
+		return nil, fmt.Errorf("BlockChain have not been initialized")
 	}
 	currentBlock := globalBlockStore.GetCurrentBlock()
 	if currentBlock == nil {
+		log.Info("There are no blocks in block store, create block chain with init state")
 		return NewBlockChainByHash(types.Hash{})
 	} else {
 		return NewBlockChainByHash(currentBlock.Header.StateRoot)
@@ -124,24 +145,30 @@ func NewLatestStateBlockChain() (*BlockChain, error) {
 
 // NewLatestStateBlockChain create a blockchain with specified block hash.
 func NewBlockChainByBlockHash(blockHash types.Hash) (*BlockChain, error) {
+	log.Info("Create block chain with block hash: %s", blockHash)
 	if stateDiskDB == nil || globalBlockStore == nil {
-		return nil, fmt.Errorf("blockChain have not been initialized")
+		log.Error("BlockChain have not been initialized")
+		return nil, fmt.Errorf("BlockChain have not been initialized")
 	}
 	block, err := globalBlockStore.GetBlockByHash(blockHash)
 	if err != nil {
-		return nil, fmt.Errorf("can not find the block with specified hash: %s", blockHash)
+		log.Error("Can not find block from block store with hash: %s", blockHash)
+		return nil, fmt.Errorf("Can not find block from block store with hash: %s ", blockHash)
 	}
 	return NewBlockChainByHash(block.Header.StateRoot)
 }
 
 // NewBlockChain returns a blockchain instance with specified hash.
 func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
+	log.Info("Create block chain with hash root: %s", root)
 	if stateDiskDB == nil || globalBlockStore == nil {
-		return nil, fmt.Errorf("blockChain have not been initialized")
+		log.Error("BlockChain have not been initialized")
+		return nil, fmt.Errorf("BlockChain have not been initialized")
 	}
 	stateDB, err := statedb.New(root, statedb.NewDatabase(stateDiskDB))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create low level statedb, as %s", err)
+		log.Error("Failed to create statedb, as: %s ", err)
+		return nil, fmt.Errorf("Failed to create statedb, as: %s ", err)
 	}
 	return &BlockChain{
 		state:      stateDB,
@@ -151,17 +178,24 @@ func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 
 // WriteBlockWithState writes the block to the database.
 func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
+	log.Info("Start Writing block: %v", block)
 	// write state to database
 	_, err := blockChain.commit(false)
-	if err != nil && block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
-		types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
+	if err != nil {
+		log.Error("Failed to commit block chain, as: %v", err)
+		if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
+			types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
+		}
 		return err
 	}
 
 	// write block to block store
 	err = blockChain.blockStore.WriteBlock(block)
-	if err != nil && block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
-		types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
+	if err != nil {
+		log.Error("Failed to write block to block store, as: %v", err)
+		if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
+			types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
+		}
 		return err
 	}
 
@@ -169,6 +203,7 @@ func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
 	if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
 		types.GlobalEventCenter.Notify(types.EventBlockCommitted, block)
 	}
+	log.Info("Write block successfully")
 	return nil
 }
 
@@ -313,14 +348,17 @@ func (blockChain *BlockChain) AddLog(interface{}) {
 
 // Commit writes the state to the underlying in-memory trie database.
 func (blockChain *BlockChain) commit(deleteEmptyObjects bool) (root types.Hash, err error) {
+	log.Info("Start committing statedb state to database")
 	//commit statedb
 	stateRoot, err := blockChain.state.Commit(false)
 	if err != nil {
+		log.Info("failed to commit statedb to MPT tree, as: %v", err)
 		return types.Hash{}, err
 	}
 	// commit statedb to low level disk database
 	err = blockChain.state.Database().TrieDB().Commit(stateRoot, false)
 	if err != nil {
+		log.Info("failed to commit MPT tree database, as: %v", err)
 		return types.Hash{}, err
 	}
 	return stateRoot, nil
