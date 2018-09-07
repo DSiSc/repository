@@ -61,7 +61,7 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 		}
 		globalBlockStore = bstore
 	default:
-		return fmt.Errorf("Unsupported plugin type ")
+		return fmt.Errorf("unsupported plugin type")
 	}
 
 	// init genesis block
@@ -112,7 +112,7 @@ type BlockChain struct {
 // NewLatestStateBlockChain create a blockchain with latest state hash.
 func NewLatestStateBlockChain() (*BlockChain, error) {
 	if stateDiskDB == nil || globalBlockStore == nil {
-		return nil, fmt.Errorf("BlockChain have not been initialized.")
+		return nil, fmt.Errorf("blockChain have not been initialized")
 	}
 	currentBlock := globalBlockStore.GetCurrentBlock()
 	if currentBlock == nil {
@@ -125,11 +125,11 @@ func NewLatestStateBlockChain() (*BlockChain, error) {
 // NewLatestStateBlockChain create a blockchain with specified block hash.
 func NewBlockChainByBlockHash(blockHash types.Hash) (*BlockChain, error) {
 	if stateDiskDB == nil || globalBlockStore == nil {
-		return nil, fmt.Errorf("BlockChain have not been initialized.")
+		return nil, fmt.Errorf("blockChain have not been initialized")
 	}
 	block, err := globalBlockStore.GetBlockByHash(blockHash)
 	if err != nil {
-		return nil, fmt.Errorf("Can not find the block with specified hash: %s.", blockHash)
+		return nil, fmt.Errorf("can not find the block with specified hash: %s", blockHash)
 	}
 	return NewBlockChainByHash(block.Header.StateRoot)
 }
@@ -137,11 +137,11 @@ func NewBlockChainByBlockHash(blockHash types.Hash) (*BlockChain, error) {
 // NewBlockChain returns a blockchain instance with specified hash.
 func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 	if stateDiskDB == nil || globalBlockStore == nil {
-		return nil, fmt.Errorf("BlockChain have not been initialized.")
+		return nil, fmt.Errorf("blockChain have not been initialized")
 	}
 	stateDB, err := statedb.New(root, statedb.NewDatabase(stateDiskDB))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create low level statedb, as %s", err)
+		return nil, fmt.Errorf("failed to create low level statedb, as %s", err)
 	}
 	return &BlockChain{
 		state:      stateDB,
