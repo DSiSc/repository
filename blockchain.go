@@ -145,30 +145,30 @@ func NewLatestStateBlockChain() (*BlockChain, error) {
 
 // NewLatestStateBlockChain create a blockchain with specified block hash.
 func NewBlockChainByBlockHash(blockHash types.Hash) (*BlockChain, error) {
-	log.Info("Create block chain with block hash: %s", blockHash)
+	log.Info("Create block chain with block hash: %v", blockHash)
 	if stateDiskDB == nil || globalBlockStore == nil {
 		log.Error("BlockChain have not been initialized")
 		return nil, fmt.Errorf("BlockChain have not been initialized")
 	}
 	block, err := globalBlockStore.GetBlockByHash(blockHash)
 	if err != nil {
-		log.Error("Can not find block from block store with hash: %s", blockHash)
-		return nil, fmt.Errorf("Can not find block from block store with hash: %s ", blockHash)
+		log.Error("Can not find block from block store with hash: %v", blockHash)
+		return nil, fmt.Errorf("Can not find block from block store with hash: %v ", blockHash)
 	}
 	return NewBlockChainByHash(block.Header.StateRoot)
 }
 
 // NewBlockChain returns a blockchain instance with specified hash.
 func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
-	log.Info("Create block chain with hash root: %s", root)
+	log.Info("Create block chain with hash root: %v", root)
 	if stateDiskDB == nil || globalBlockStore == nil {
 		log.Error("BlockChain have not been initialized")
 		return nil, fmt.Errorf("BlockChain have not been initialized")
 	}
 	stateDB, err := statedb.New(root, statedb.NewDatabase(stateDiskDB))
 	if err != nil {
-		log.Error("Failed to create statedb, as: %s ", err)
-		return nil, fmt.Errorf("Failed to create statedb, as: %s ", err)
+		log.Error("Failed to create statedb, as: %v ", err)
+		return nil, fmt.Errorf("Failed to create statedb, as: %v ", err)
 	}
 	return &BlockChain{
 		state:      stateDB,

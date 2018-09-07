@@ -77,6 +77,10 @@ func buildDefaultGenesis() (*GensisBlock, error) {
 				Addr:    common.HexToAddress("0x0000000000000000000000000000000000000000"),
 				Balance: new(big.Int).SetInt64(100000000),
 			},
+			{
+				Addr:    common.HexToAddress("0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b"),
+				Balance: new(big.Int).SetInt64(100000),
+			},
 		},
 	}
 	genesisBlock.Block.HeaderHash = common.HeaderHash(genesisBlock.Block)
