@@ -39,6 +39,38 @@ func mockBlock() *types.Block {
 	return block
 }
 
+// mock block with txs
+func mockBlockWithTx() (*types.Block, types.Transaction) {
+	block := mockBlock()
+	address := common.HexToAddress("")
+	txHash := common.HexToHash("")
+	tx := types.Transaction{
+		Data: types.TxData{
+			AccountNonce: 1,
+			Recipient:    &address,
+			From:         &address,
+			Payload:      nil,
+			Amount:       big.NewInt(100),
+			GasLimit:     0,
+			Price:        big.NewInt(100),
+			V:            big.NewInt(100),
+			R:            big.NewInt(100),
+			S:            big.NewInt(100),
+			Hash:         &txHash,
+		},
+	}
+	block.Transactions = []*types.Transaction{&tx}
+	return block, tx
+}
+
+// mock receipts
+func mockReceipts() []*types.Receipt {
+	receipt := types.Receipt{
+		Status: 1,
+	}
+	return []*types.Receipt{&receipt}
+}
+
 // test init blockchain with memory database.
 func TestInitBlockChain_WithMemDB(t *testing.T) {
 	assert := assert.New(t)
@@ -124,6 +156,63 @@ func TestBlockChain_WriteBlock(t *testing.T) {
 	err = bc.WriteBlock(block)
 	assert.Nil(err)
 	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+}
+
+// test write block with receipts
+func TestBlockChain_WriteBlockWithReceipts(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+
+	block := mockBlock()
+	block.Header.Height = bc.GetCurrentBlockHeight() + 1
+	block.Header.StateRoot = bc.IntermediateRoot(false)
+
+	receipts := mockReceipts()
+	err = bc.WriteBlockWithReceipts(block, receipts)
+	assert.Nil(err)
+	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+}
+
+// test get transaction by hash
+func TestBlockChain_GetTransactionByHash(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+
+	block, tx := mockBlockWithTx()
+	block.Header.Height = bc.GetCurrentBlockHeight() + 1
+	block.Header.StateRoot = bc.IntermediateRoot(false)
+	err = bc.WriteBlock(block)
+	assert.Nil(err)
+	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+
+	savedTx, err := bc.GetTransactionByHash(*tx.Data.Hash)
+	assert.Nil(err)
+	assert.Equal(&tx, savedTx)
+}
+
+// test get receipt by tx hash
+func TestBlockChain_GetReceiptByTxHash(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+
+	block, tx := mockBlockWithTx()
+	block.Header.Height = bc.GetCurrentBlockHeight() + 1
+	block.Header.StateRoot = bc.IntermediateRoot(false)
+
+	receipts := mockReceipts()
+	err = bc.WriteBlockWithReceipts(block, receipts)
+	assert.Nil(err)
+	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+
+	savedReceipt, err := bc.GetReceiptByTxHash(*tx.Data.Hash)
+	assert.Nil(err)
+	assert.Equal(receipts[0], savedReceipt)
 }
 
 // BlockHash calculate block's hash

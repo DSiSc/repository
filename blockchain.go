@@ -178,6 +178,16 @@ func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 
 // WriteBlockWithState writes the block to the database.
 func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
+	return blockChain.WriteBlockWithReceipts(block, nil)
+}
+
+// GetTransactionByHash get transaction by hash
+func (blockChain *BlockChain) GetTransactionByHash(hash types.Hash) (*types.Transaction, error) {
+	return blockChain.blockStore.GetTransactionByHash(hash)
+}
+
+// WriteBlock write the block and relative receipts to database. return error if write failed.
+func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt) error {
 	log.Info("Start Writing block: %v", block)
 	// write state to database
 	_, err := blockChain.commit(false)
@@ -190,7 +200,11 @@ func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
 	}
 
 	// write block to block store
-	err = blockChain.blockStore.WriteBlock(block)
+	if receipts == nil || len(receipts) == 0 {
+		err = blockChain.blockStore.WriteBlock(block)
+	} else {
+		err = blockChain.blockStore.WriteBlockWithReceipts(block, receipts)
+	}
 	if err != nil {
 		log.Error("Failed to write block to block store, as: %v", err)
 		if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
@@ -205,6 +219,11 @@ func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
 	}
 	log.Info("Write block successfully")
 	return nil
+}
+
+// GetReceiptByHash get receipt by relative tx's hash
+func (blockChain *BlockChain) GetReceiptByTxHash(txHash types.Hash) (*types.Receipt, error) {
+	return blockChain.blockStore.GetReceiptByTxHash(txHash)
 }
 
 // GetBlockByHash retrieves a block from the local chain.

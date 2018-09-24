@@ -42,6 +42,22 @@ func BytesToAddress(b []byte) types.Address {
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) types.Address { return BytesToAddress(FromHex(s)) }
 
+// HexToHash sets byte representation of s to hash.
+// If b is larger than len(h), b will be cropped from the left.
+func HexToHash(s string) types.Hash { return BytesToHash(FromHex(s)) }
+
+// BytesToHash sets b to hash.
+// If b is larger than len(h), b will be cropped from the left.
+func BytesToHash(b []byte) types.Hash {
+	var h types.Hash
+	if len(b) > len(h) {
+		b = b[len(b)-HashLength:]
+	}
+
+	copy(h[HashLength-len(b):], b)
+	return h
+}
+
 // FromHex returns the bytes represented by the hexadecimal string s.
 // s may be prefixed with "0x".
 func FromHex(s string) []byte {
