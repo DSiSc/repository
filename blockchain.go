@@ -182,7 +182,7 @@ func (blockChain *BlockChain) WriteBlock(block *types.Block) error {
 }
 
 // GetTransactionByHash get transaction by hash
-func (blockChain *BlockChain) GetTransactionByHash(hash types.Hash) (*types.Transaction, error) {
+func (blockChain *BlockChain) GetTransactionByHash(hash types.Hash) (*types.Transaction, types.Hash, uint64, uint64, error) {
 	return blockChain.blockStore.GetTransactionByHash(hash)
 }
 
@@ -222,7 +222,7 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 }
 
 // GetReceiptByHash get receipt by relative tx's hash
-func (blockChain *BlockChain) GetReceiptByTxHash(txHash types.Hash) (*types.Receipt, error) {
+func (blockChain *BlockChain) GetReceiptByTxHash(txHash types.Hash) (*types.Receipt, types.Hash, uint64, uint64, error) {
 	return blockChain.blockStore.GetReceiptByTxHash(txHash)
 }
 
