@@ -61,7 +61,6 @@ func buildDefaultGenesis() (*GensisBlock, error) {
 		ReceiptsRoot:  types.Hash{},
 		Height:        uint64(0),
 		Timestamp:     uint64(time.Date(2018, time.August, 28, 0, 0, 0, 0, time.UTC).Unix()),
-		MixDigest:     types.Hash{},
 	}
 
 	// genesis block
@@ -69,7 +68,6 @@ func buildDefaultGenesis() (*GensisBlock, error) {
 		Block: &types.Block{
 			Header:       genesisHeader,
 			Transactions: make([]*types.Transaction, 0),
-			SigData:      make([][]byte, 0),
 		},
 		ExtraData: nil,
 		GenesisAccounts: []GenesisAccount{
