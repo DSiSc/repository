@@ -81,6 +81,5 @@ func buildDefaultGenesis() (*GensisBlock, error) {
 			},
 		},
 	}
-	genesisBlock.Block.HeaderHash = common.HeaderHash(genesisBlock.Block)
 	return genesisBlock, nil
 }

@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"github.com/DSiSc/blockchain/common"
 	"github.com/DSiSc/blockchain/config"
@@ -122,7 +121,7 @@ func TestNewBlockChainByBlockHash(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(bc)
 	currentBlock := bc.GetCurrentBlock()
-	blockHash := blockHash(currentBlock)
+	blockHash := common.HeaderHash(currentBlock)
 	bc, err = NewBlockChainByBlockHash(blockHash)
 	assert.Nil(err)
 	assert.NotNil(bc)
@@ -213,14 +212,6 @@ func TestBlockChain_GetReceiptByTxHash(t *testing.T) {
 	savedReceipt, _, _, _, err := bc.GetReceiptByTxHash(*tx.Data.Hash)
 	assert.Nil(err)
 	assert.Equal(receipts[0], savedReceipt)
-}
-
-// BlockHash calculate block's hash
-func blockHash(block *types.Block) (hash types.Hash) {
-	jsonByte, _ := json.Marshal(block)
-	sumByte := sum(jsonByte)
-	copy(hash[:], sumByte)
-	return
 }
 
 // Sum returns the first 20 bytes of SHA256 of the bz.

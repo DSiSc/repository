@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"fmt"
+	"github.com/DSiSc/blockchain/common"
 	"github.com/DSiSc/blockchain/config"
 	"github.com/DSiSc/blockchain/genesis"
 	"github.com/DSiSc/blockstore"
@@ -108,6 +109,7 @@ func ResetBlockChain(genesisPath string) error {
 	// write block to chain.
 	block := genesis.Block
 	block.Header.StateRoot = genesisStateRoot
+	block.HeaderHash = common.HeaderHash(block)
 	err = bc.WriteBlock(block)
 	if err != nil {
 		log.Error("Failed to write genesis block to block store, as:%v", err)
