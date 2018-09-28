@@ -188,7 +188,7 @@ func TestBlockChain_GetTransactionByHash(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
 
-	savedTx, _, _, _, err := bc.GetTransactionByHash(*tx.Data.Hash)
+	savedTx, _, _, _, err := bc.GetTransactionByHash(common.TxHash(&tx))
 	assert.Nil(err)
 	assert.Equal(&tx, savedTx)
 }
@@ -209,7 +209,7 @@ func TestBlockChain_GetReceiptByTxHash(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
 
-	savedReceipt, _, _, _, err := bc.GetReceiptByTxHash(*tx.Data.Hash)
+	savedReceipt, _, _, _, err := bc.GetReceiptByTxHash(common.TxHash(&tx))
 	assert.Nil(err)
 	assert.Equal(receipts[0], savedReceipt)
 }

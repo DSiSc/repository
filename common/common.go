@@ -20,6 +20,18 @@ func Sum(bz []byte) []byte {
 	return hash[:types.HashLength]
 }
 
+// TxHash calculate tx's hash
+func TxHash(tx *types.Transaction) (hash types.Hash) {
+	if nil == tx {
+		log.Warn("Tx is nil, so it's hash meaningless.")
+		return
+	}
+	jsonByte, _ := json.Marshal(tx)
+	sumByte := Sum(jsonByte)
+	copy(hash[:], sumByte)
+	return
+}
+
 func HeaderHash(block *types.Block) (hash types.Hash) {
 	var defaultHash types.Hash
 	if !bytes.Equal(block.HeaderHash[:], defaultHash[:]) {
