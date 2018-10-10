@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"os"
 	"time"
+	"math"
 )
 
 // GenesisAccount is the account in genesis block.
@@ -73,11 +74,11 @@ func buildDefaultGenesis() (*GensisBlock, error) {
 		GenesisAccounts: []GenesisAccount{
 			{
 				Addr:    common.HexToAddress("0x0000000000000000000000000000000000000000"),
-				Balance: new(big.Int).SetInt64(100000000),
+				Balance: new(big.Int).SetInt64(math.MaxInt64),
 			},
 			{
 				Addr:    common.HexToAddress("0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b"),
-				Balance: new(big.Int).SetInt64(100000),
+				Balance: new(big.Int).SetInt64(math.MaxInt64),
 			},
 		},
 	}
