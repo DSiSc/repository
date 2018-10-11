@@ -7,6 +7,7 @@ import (
 	"github.com/DSiSc/blockchain/config"
 	"github.com/DSiSc/craft/types"
 	"github.com/stretchr/testify/assert"
+	"math"
 	"math/big"
 	"os"
 	"testing"
@@ -103,7 +104,7 @@ func TestResetBlockChain(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(bc)
 	balance := bc.GetBalance(common.HexToAddress("0x0000000000000000000000000000000000000000"))
-	assert.Equal(0, balance.Cmp(big.NewInt(100000000)))
+	assert.Equal(0, balance.Cmp(big.NewInt(math.MaxInt64)))
 }
 
 // test new latest blockchain
@@ -190,6 +191,7 @@ func TestBlockChain_GetTransactionByHash(t *testing.T) {
 
 	savedTx, _, _, _, err := bc.GetTransactionByHash(common.TxHash(&tx))
 	assert.Nil(err)
+	common.TxHash(savedTx)
 	assert.Equal(&tx, savedTx)
 }
 

@@ -6,10 +6,10 @@ import (
 	"github.com/DSiSc/blockchain/common"
 	"github.com/DSiSc/craft/log"
 	"github.com/DSiSc/craft/types"
+	"math"
 	"math/big"
 	"os"
 	"time"
-	"math"
 )
 
 // GenesisAccount is the account in genesis block.
