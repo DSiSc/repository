@@ -8,6 +8,7 @@ import (
 	"github.com/DSiSc/blockstore"
 	blkconf "github.com/DSiSc/blockstore/config"
 	"github.com/DSiSc/craft/log"
+	"github.com/DSiSc/craft/monitor"
 	"github.com/DSiSc/craft/types"
 	"github.com/DSiSc/statedb-NG"
 	"github.com/DSiSc/statedb-NG/ethdb"
@@ -220,6 +221,11 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 		types.GlobalEventCenter.Notify(types.EventBlockCommitted, block)
 	}
 	log.Info("Write block successfully")
+
+	monitor.JTMetrics.BlockTxNum.Set(float64(len(block.Transactions)))
+	monitor.JTMetrics.CommittedTx.Add(float64(len(block.Transactions)))
+	monitor.JTMetrics.BlockHeight.Set(float64(block.Header.Height))
+
 	return nil
 }
 
