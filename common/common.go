@@ -57,7 +57,7 @@ func TxHash(tx *types.Transaction) (hash types.Hash) {
 func HeaderHash(block *types.Block) (hash types.Hash) {
 	var defaultHash types.Hash
 	if !bytes.Equal(block.HeaderHash[:], defaultHash[:]) {
-		log.Info("block hash %v has exits.", block.HeaderHash)
+		log.Info("block hash %x has exits.", block.HeaderHash)
 		copy(hash[:], block.HeaderHash[:])
 		return
 	}

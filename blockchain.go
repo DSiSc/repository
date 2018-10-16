@@ -148,22 +148,22 @@ func NewLatestStateBlockChain() (*BlockChain, error) {
 
 // NewLatestStateBlockChain create a blockchain with specified block hash.
 func NewBlockChainByBlockHash(blockHash types.Hash) (*BlockChain, error) {
-	log.Info("Create block chain with block hash: %v", blockHash)
+	log.Info("Create block chain with block hash: %x", blockHash)
 	if stateDiskDB == nil || globalBlockStore == nil {
 		log.Error("BlockChain have not been initialized")
 		return nil, fmt.Errorf("BlockChain have not been initialized")
 	}
 	block, err := globalBlockStore.GetBlockByHash(blockHash)
 	if err != nil {
-		log.Error("Can not find block from block store with hash: %v", blockHash)
-		return nil, fmt.Errorf("Can not find block from block store with hash: %v ", blockHash)
+		log.Error("Can not find block from block store with hash: %x", blockHash)
+		return nil, fmt.Errorf("Can not find block from block store with hash: %x ", blockHash)
 	}
 	return NewBlockChainByHash(block.Header.StateRoot)
 }
 
 // NewBlockChain returns a blockchain instance with specified hash.
 func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
-	log.Info("Create block chain with hash root: %v", root)
+	log.Info("Create block chain with hash root: %x", root)
 	if stateDiskDB == nil || globalBlockStore == nil {
 		log.Error("BlockChain have not been initialized")
 		return nil, fmt.Errorf("BlockChain have not been initialized")
@@ -191,7 +191,7 @@ func (blockChain *BlockChain) GetTransactionByHash(hash types.Hash) (*types.Tran
 
 // WriteBlock write the block and relative receipts to database. return error if write failed.
 func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt) error {
-	log.Info("Start Writing block: %v", block)
+	log.Info("Start Writing block: %x", block.HeaderHash)
 	// write state to database
 	_, err := blockChain.commit(false)
 	if err != nil {
