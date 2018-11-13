@@ -15,14 +15,12 @@ import (
 
 func TestMain(m *testing.M) {
 	// init event center
-	types.GlobalEventCenter = &eventCenter{}
-
 	chainConfig := config.BlockChainConfig{
 		PluginName:    PLUGIN_MEMDB,
 		StateDataPath: "/tmp/state",
 		BlockDataPath: "/tmp/block",
 	}
-	err := InitBlockChain(chainConfig)
+	err := InitBlockChain(chainConfig, &eventCenter{})
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
@@ -79,7 +77,7 @@ func TestInitBlockChain_WithMemDB(t *testing.T) {
 		StateDataPath: "",
 		BlockDataPath: "",
 	}
-	err := InitBlockChain(chainConfig)
+	err := InitBlockChain(chainConfig, &eventCenter{})
 	assert.Nil(err)
 }
 
@@ -91,7 +89,7 @@ func TestInitBlockChain_WithFileDB(t *testing.T) {
 		StateDataPath: "/tmp/state",
 		BlockDataPath: "/tmp/block",
 	}
-	err := InitBlockChain(chainConfig)
+	err := InitBlockChain(chainConfig, &eventCenter{})
 	assert.Nil(err)
 }
 

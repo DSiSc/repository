@@ -18,8 +18,9 @@ import (
 
 // global disk database instance
 var (
-	stateDiskDB      ethdb.Database         = nil
-	globalBlockStore *blockstore.BlockStore = nil
+	stateDiskDB       ethdb.Database         = nil
+	globalBlockStore  *blockstore.BlockStore = nil
+	globalEventCenter types.EventCenter      = nil
 )
 
 // blockchain module constant value.
@@ -31,7 +32,7 @@ const (
 )
 
 // InitBlockChain init blockchain module config.
-func InitBlockChain(chainConfig config.BlockChainConfig) error {
+func InitBlockChain(chainConfig config.BlockChainConfig, eventCenter types.EventCenter) error {
 	log.Info("Start initializing block chain")
 	switch chainConfig.PluginName {
 	case PLUGIN_LEVELDB:
@@ -73,6 +74,7 @@ func InitBlockChain(chainConfig config.BlockChainConfig) error {
 		return fmt.Errorf("Unsupported plugin type: %s ", chainConfig.PluginName)
 	}
 
+	globalEventCenter = eventCenter
 	// init genesis block
 	currentHeight := globalBlockStore.GetCurrentBlockHeight()
 	log.Info("Current block height %d", currentHeight)
@@ -127,6 +129,7 @@ type BlockChain struct {
 	blockStore   blockstore.BlockStoreAPI
 	state        *statedb.StateDB
 	mu           sync.RWMutex
+	eventCenter  types.EventCenter
 	currentBlock *types.Block
 }
 
@@ -174,8 +177,9 @@ func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 		return nil, fmt.Errorf("Failed to create statedb, as: %v ", err)
 	}
 	return &BlockChain{
-		state:      stateDB,
-		blockStore: globalBlockStore,
+		state:       stateDB,
+		blockStore:  globalBlockStore,
+		eventCenter: globalEventCenter,
 	}, nil
 }
 
@@ -197,7 +201,7 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 	if err != nil {
 		log.Error("Failed to commit block chain, as: %v", err)
 		if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
-			types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
+			blockChain.eventCenter.Notify(types.EventBlockCommitFailed, err)
 		}
 		return err
 	}
@@ -211,14 +215,14 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 	if err != nil {
 		log.Error("Failed to write block to block store, as: %v", err)
 		if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
-			types.GlobalEventCenter.Notify(types.EventBlockCommitFailed, err)
+			blockChain.eventCenter.Notify(types.EventBlockCommitFailed, err)
 		}
 		return err
 	}
 
 	// send block commit event if it is not the genesis block.
 	if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
-		types.GlobalEventCenter.Notify(types.EventBlockCommitted, block)
+		blockChain.eventCenter.Notify(types.EventBlockCommitted, block)
 	}
 	log.Info("Write block successfully")
 
