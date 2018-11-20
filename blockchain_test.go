@@ -150,6 +150,7 @@ func TestBlockChain_WriteBlock(t *testing.T) {
 	block := mockBlock()
 	block.Header.Height = bc.GetCurrentBlockHeight() + 1
 	block.Header.StateRoot = bc.IntermediateRoot(false)
+	block.HeaderHash = common.HeaderHash(block)
 
 	err = bc.WriteBlock(block)
 	assert.Nil(err)
@@ -166,6 +167,7 @@ func TestBlockChain_WriteBlockWithReceipts(t *testing.T) {
 	block := mockBlock()
 	block.Header.Height = bc.GetCurrentBlockHeight() + 1
 	block.Header.StateRoot = bc.IntermediateRoot(false)
+	block.HeaderHash = common.HeaderHash(block)
 
 	receipts := mockReceipts()
 	err = bc.WriteBlockWithReceipts(block, receipts)
@@ -183,6 +185,7 @@ func TestBlockChain_GetTransactionByHash(t *testing.T) {
 	block, tx := mockBlockWithTx()
 	block.Header.Height = bc.GetCurrentBlockHeight() + 1
 	block.Header.StateRoot = bc.IntermediateRoot(false)
+	block.HeaderHash = common.HeaderHash(block)
 	err = bc.WriteBlock(block)
 	assert.Nil(err)
 	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
@@ -203,6 +206,7 @@ func TestBlockChain_GetReceiptByTxHash(t *testing.T) {
 	block, tx := mockBlockWithTx()
 	block.Header.Height = bc.GetCurrentBlockHeight() + 1
 	block.Header.StateRoot = bc.IntermediateRoot(false)
+	block.HeaderHash = common.HeaderHash(block)
 
 	receipts := mockReceipts()
 	err = bc.WriteBlockWithReceipts(block, receipts)
