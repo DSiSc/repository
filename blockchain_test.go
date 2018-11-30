@@ -6,10 +6,12 @@ import (
 	"github.com/DSiSc/blockchain/common"
 	"github.com/DSiSc/blockchain/config"
 	"github.com/DSiSc/craft/types"
+	"github.com/DSiSc/monkey"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"math/big"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -173,6 +175,37 @@ func TestBlockChain_WriteBlockWithReceipts(t *testing.T) {
 	err = bc.WriteBlockWithReceipts(block, receipts)
 	assert.Nil(err)
 	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+}
+
+// test write block with receipts
+func TestBlockChain_EventWriteBlockWithReceipts(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+
+	block := mockBlock()
+	block.Header.Height = bc.GetCurrentBlockHeight() + 1
+	block.Header.StateRoot = bc.IntermediateRoot(false)
+	block.HeaderHash = common.HeaderHash(block)
+
+	receipts := mockReceipts()
+	monkey.PatchInstanceMethod(reflect.TypeOf(globalEventCenter), "Notify", func(this *eventCenter, eventType types.EventType, value interface{}) (err error) {
+		assert.Equal(types.EventBlockWritten, eventType)
+		return nil
+	})
+	err = bc.EventWriteBlockWithReceipts(block, receipts, false)
+	assert.Nil(err)
+	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+	monkey.UnpatchAll()
+	monkey.PatchInstanceMethod(reflect.TypeOf(globalEventCenter), "Notify", func(this *eventCenter, eventType types.EventType, value interface{}) (err error) {
+		assert.Equal(types.EventBlockCommitted, eventType)
+		return nil
+	})
+	err = bc.EventWriteBlockWithReceipts(block, receipts, true)
+	assert.Nil(err)
+	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+	monkey.UnpatchAll()
 }
 
 // test get transaction by hash

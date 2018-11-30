@@ -195,12 +195,19 @@ func (blockChain *BlockChain) GetTransactionByHash(hash types.Hash) (*types.Tran
 
 // WriteBlock write the block and relative receipts to database. return error if write failed.
 func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt) error {
+	return blockChain.EventWriteBlockWithReceipts(block, receipts, true)
+}
+
+// WriteBlock write the block and relative receipts to database. return error if write failed.
+func (blockChain *BlockChain) EventWriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt, emitCommitEvent bool) error {
 	log.Info("Start Writing block: %x", block.HeaderHash)
 	// write state to database
 	_, err := blockChain.commit(false)
 	if err != nil {
 		log.Error("Failed to commit block chain, as: %v", err)
-		if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
+		if block.Header.Height == blockstore.INIT_BLOCK_HEIGHT || !emitCommitEvent {
+			blockChain.eventCenter.Notify(types.EventBlockWriteFailed, err)
+		} else {
 			blockChain.eventCenter.Notify(types.EventBlockCommitFailed, err)
 		}
 		return err
@@ -214,22 +221,25 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 	}
 	if err != nil {
 		log.Error("Failed to write block to block store, as: %v", err)
-		if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
+		if block.Header.Height == blockstore.INIT_BLOCK_HEIGHT || !emitCommitEvent {
+			blockChain.eventCenter.Notify(types.EventBlockWriteFailed, err)
+		} else {
 			blockChain.eventCenter.Notify(types.EventBlockCommitFailed, err)
 		}
 		return err
 	}
 
 	// send block commit event if it is not the genesis block.
-	if block.Header.Height != blockstore.INIT_BLOCK_HEIGHT {
-		blockChain.eventCenter.Notify(types.EventBlockCommitted, block)
+	if block.Header.Height == blockstore.INIT_BLOCK_HEIGHT || !emitCommitEvent {
+		blockChain.eventCenter.Notify(types.EventBlockWritten, err)
+	} else {
+		blockChain.eventCenter.Notify(types.EventBlockCommitted, err)
 	}
 	log.Info("Write block successfully")
 
 	monitor.JTMetrics.BlockTxNum.Set(float64(len(block.Transactions)))
 	monitor.JTMetrics.CommittedTx.Add(float64(len(block.Transactions)))
 	monitor.JTMetrics.BlockHeight.Set(float64(block.Header.Height))
-
 	return nil
 }
 
