@@ -231,9 +231,9 @@ func (blockChain *BlockChain) EventWriteBlockWithReceipts(block *types.Block, re
 
 	// send block commit event if it is not the genesis block.
 	if block.Header.Height == blockstore.INIT_BLOCK_HEIGHT || !emitCommitEvent {
-		blockChain.eventCenter.Notify(types.EventBlockWritten, err)
+		blockChain.eventCenter.Notify(types.EventBlockWritten, block)
 	} else {
-		blockChain.eventCenter.Notify(types.EventBlockCommitted, err)
+		blockChain.eventCenter.Notify(types.EventBlockCommitted, block)
 	}
 	log.Info("Write block successfully")
 
