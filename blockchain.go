@@ -202,15 +202,17 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 func (blockChain *BlockChain) EventWriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt, emitCommitEvent bool) error {
 	log.Info("Start Writing block: %x", block.HeaderHash)
 	// write state to database
-	_, err := blockChain.commit(false)
+	stateRoot, err := blockChain.commit(false)
 	if err != nil {
-		log.Error("Failed to commit block chain, as: %v", err)
+		log.Error("Failed to commit block %x's state root, block height %d, failed reason: %v", block.HeaderHash, block.Header.Height, err)
 		if block.Header.Height == blockstore.INIT_BLOCK_HEIGHT || !emitCommitEvent {
 			blockChain.eventCenter.Notify(types.EventBlockWriteFailed, err)
 		} else {
 			blockChain.eventCenter.Notify(types.EventBlockCommitFailed, err)
 		}
 		return err
+	} else {
+		log.Info("Commit state %x to database, current block height: %d", stateRoot, block.Header.Height)
 	}
 
 	// write block to block store
