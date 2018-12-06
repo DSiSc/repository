@@ -135,7 +135,7 @@ type BlockChain struct {
 
 // NewLatestStateBlockChain create a blockchain with latest state hash.
 func NewLatestStateBlockChain() (*BlockChain, error) {
-	log.Info("Create block chain at the latest height")
+	log.Debug("Create block chain at the latest height")
 	if stateDiskDB == nil || globalBlockStore == nil {
 		log.Error("BlockChain have not been initialized")
 		return nil, fmt.Errorf("BlockChain have not been initialized")
@@ -166,7 +166,7 @@ func NewBlockChainByBlockHash(blockHash types.Hash) (*BlockChain, error) {
 
 // NewBlockChain returns a blockchain instance with specified hash.
 func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
-	log.Info("Create block chain with hash root: %x", root)
+	log.Debug("Create block chain with hash root: %x", root)
 	if stateDiskDB == nil || globalBlockStore == nil {
 		log.Error("BlockChain have not been initialized")
 		return nil, fmt.Errorf("BlockChain have not been initialized")
