@@ -200,7 +200,7 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 
 // WriteBlock write the block and relative receipts to database. return error if write failed.
 func (blockChain *BlockChain) EventWriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt, emitCommitEvent bool) error {
-	log.Info("Start Writing block: %x", block.HeaderHash)
+	log.Info("Start Writing block: %x, height: %d", block.HeaderHash, block.Header.Height)
 	// write state to database
 	stateRoot, err := blockChain.commit(false)
 	if err != nil {
@@ -237,7 +237,7 @@ func (blockChain *BlockChain) EventWriteBlockWithReceipts(block *types.Block, re
 	} else {
 		blockChain.eventCenter.Notify(types.EventBlockCommitted, block)
 	}
-	log.Info("Write block successfully")
+	log.Info("Write block %x height %d successfully", block.HeaderHash, block.Header.Height)
 
 	monitor.JTMetrics.BlockTxNum.Set(float64(len(block.Transactions)))
 	monitor.JTMetrics.CommittedTx.Add(float64(len(block.Transactions)))
