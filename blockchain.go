@@ -18,6 +18,8 @@ import (
 
 // global disk database instance
 var (
+	lock              sync.Mutex
+	initialized       bool
 	stateDiskDB       ethdb.Database         = nil
 	globalBlockStore  *blockstore.BlockStore = nil
 	globalEventCenter types.EventCenter      = nil
@@ -33,6 +35,11 @@ const (
 
 // InitBlockChain init blockchain module config.
 func InitBlockChain(chainConfig config.BlockChainConfig, eventCenter types.EventCenter) error {
+	lock.Lock()
+	defer lock.Unlock()
+	if initialized {
+		log.Warn("BlockChain has been initialized")
+	}
 	log.Info("Start initializing block chain")
 	switch chainConfig.PluginName {
 	case PLUGIN_LEVELDB:
@@ -82,6 +89,7 @@ func InitBlockChain(chainConfig config.BlockChainConfig, eventCenter types.Event
 		log.Info("There are no blocks in block store, we will reset the chain to genesis state")
 		return ResetBlockChain(chainConfig.GenesisFile)
 	}
+	initialized = true
 	return nil
 }
 
