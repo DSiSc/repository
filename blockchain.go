@@ -113,6 +113,7 @@ func ResetBlockChain(genesisPath string) error {
 		if account.Balance.Cmp(big.NewInt(0)) == 1 {
 			bc.CreateAccount(account.Addr)
 			bc.SetBalance(account.Addr, account.Balance)
+			bc.SetCode(account.Addr, account.Code)
 		}
 	}
 	genesisStateRoot := bc.IntermediateRoot(false)

@@ -19,4 +19,5 @@ func TestBuildGensisBlockFromFile(t *testing.T) {
 	block, err := BuildGensisBlock("./genesis.json")
 	assert.NotNil(block)
 	assert.Nil(err)
+	assert.Equal(block.GenesisAccounts[1].Code, []byte{0, 1, 1, 0})
 }

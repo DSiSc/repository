@@ -15,7 +15,8 @@ import (
 // GenesisAccount is the account in genesis block.
 type GenesisAccount struct {
 	Addr    types.Address `json:"addr"     gencodec:"required"`
-	Balance *big.Int      `json:"balance"    gencodec:"required"`
+	Balance *big.Int      `json:"balance"`
+	Code    []byte        `json:"code"`
 }
 
 // GensisBlock is the genesis block struct of the chain.
