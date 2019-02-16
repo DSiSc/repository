@@ -251,6 +251,48 @@ func TestBlockChain_GetReceiptByTxHash(t *testing.T) {
 	assert.Equal(receipts[0], savedReceipt)
 }
 
+// test get receipts by block hash
+func TestBlockChain_GetReceiptByBlockHash(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+
+	block, _ := mockBlockWithTx()
+	block.Header.Height = bc.GetCurrentBlockHeight() + 1
+	block.Header.StateRoot = bc.IntermediateRoot(false)
+	block.HeaderHash = common.HeaderHash(block)
+
+	receipts := mockReceipts()
+	err = bc.WriteBlockWithReceipts(block, receipts)
+	assert.Nil(err)
+	assert.Equal(block.Header.Height, bc.GetCurrentBlockHeight())
+
+	savedReceipts := bc.GetReceiptByBlockHash(common.HeaderHash(block))
+	assert.Nil(err)
+	assert.Equal(receipts, savedReceipts)
+}
+
+// test add contract execution log
+func TestBlockChain_AddLog(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+
+	txHash := common.HexToHash("0xcd0c3e8af590364c09d0fa6a1210faf5")
+	bHash := common.HexToHash("0xcd0c3e8af590364c09d0fa6a1210faf6")
+	log := &types.Log{
+		TxHash: txHash,
+	}
+
+	bc.Prepare(txHash, bHash, 1)
+	bc.AddLog(log)
+
+	savedLogs := bc.GetLogs(txHash)
+	assert.Equal(log, savedLogs[0])
+}
+
 // Sum returns the first 20 bytes of SHA256 of the bz.
 func sum(bz []byte) []byte {
 	hash := sha256.Sum256(bz)

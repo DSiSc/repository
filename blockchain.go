@@ -110,7 +110,7 @@ func ResetBlockChain(genesisPath string) error {
 
 	// record genesis account
 	for _, account := range genesis.GenesisAccounts {
-		if account.Balance.Cmp(big.NewInt(0)) == 1 {
+		if account.Balance.Cmp(big.NewInt(0)) == 1 || len(account.Code) != 0 {
 			bc.CreateAccount(account.Addr)
 			bc.SetBalance(account.Addr, account.Balance)
 			bc.SetCode(account.Addr, account.Code)
@@ -259,6 +259,17 @@ func (blockChain *BlockChain) GetReceiptByTxHash(txHash types.Hash) (*types.Rece
 	return blockChain.blockStore.GetReceiptByTxHash(txHash)
 }
 
+// GetReceiptByHash get receipt by relative block's hash
+func (blockChain *BlockChain) GetReceiptByBlockHash(blockHash types.Hash) []*types.Receipt {
+	return blockChain.blockStore.GetReceiptByBlockHash(blockHash)
+}
+
+// GetLogs get transaction's execution log
+func (blockChain *BlockChain) GetLogs(txHash types.Hash) []*types.Log {
+	log.Debug("Get Tx[%x]'s execution log", txHash)
+	return blockChain.state.GetLogs(txHash)
+}
+
 // GetBlockByHash retrieves a block from the local chain.
 func (blockChain *BlockChain) GetBlockByHash(hash types.Hash) (*types.Block, error) {
 	return blockChain.blockStore.GetBlockByHash(hash)
@@ -393,9 +404,9 @@ func (blockChain *BlockChain) Prepare(thash, bhash types.Hash, ti int) {
 	blockChain.state.Prepare(thash, bhash, ti)
 }
 
-// TODO: add contract execute log.
-func (blockChain *BlockChain) AddLog(interface{}) {
-	//TODO
+// AddLog add contract execute log.
+func (blockChain *BlockChain) AddLog(log *types.Log) {
+	blockChain.state.AddLog(log)
 }
 
 // Commit writes the state to the underlying in-memory trie database.
