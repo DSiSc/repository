@@ -1,13 +1,12 @@
 package common
 
 import (
-	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	gconf "github.com/DSiSc/craft/config"
-	"github.com/DSiSc/craft/log"
+	"github.com/DSiSc/craft/rlp"
 	"github.com/DSiSc/craft/types"
 	"github.com/DSiSc/crypto-suite/crypto/sha3"
+	"hash"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -16,18 +15,23 @@ const (
 	AddressLength = 20
 )
 
-// Sum returns the first 32 bytes of hash of the bz.
-func Sum(bz []byte) []byte {
+// get hash algorithm by global config
+func HashAlg() hash.Hash {
 	var alg string
 	if value, ok := gconf.GlobalConfig.Load(gconf.HashAlgName); ok {
 		alg = value.(string)
 	} else {
 		alg = "SHA256"
 	}
-	hasher := sha3.NewHashByAlgName(alg)
-	hasher.Write(bz)
-	hash := hasher.Sum(nil)
-	return hash[:types.HashLength]
+	return sha3.NewHashByAlgName(alg)
+}
+
+// calculate the hash value of the rlp encoded byte of x
+func rlpHash(x interface{}) (h types.Hash) {
+	hw := HashAlg()
+	rlp.Encode(hw, x)
+	hw.Sum(h[:0])
+	return h
 }
 
 // TxHash calculate tx's hash
@@ -35,36 +39,20 @@ func TxHash(tx *types.Transaction) (hash types.Hash) {
 	if hash := tx.Hash.Load(); hash != nil {
 		return hash.(types.Hash)
 	}
-	hashData := types.TxData{
-		AccountNonce: tx.Data.AccountNonce,
-		Price:        tx.Data.Price,
-		GasLimit:     tx.Data.GasLimit,
-		Recipient:    tx.Data.Recipient,
-		Amount:       tx.Data.Amount,
-		Payload:      tx.Data.Payload,
-		V:            tx.Data.V,
-		R:            tx.Data.R,
-		S:            tx.Data.S,
-	}
-	jsonByte, _ := json.Marshal(hashData)
-	sumByte := Sum(jsonByte)
-	var temp types.Hash
-	copy(temp[:], sumByte)
-	tx.Hash.Store(temp)
-	return temp
+	v := rlpHash(tx)
+	tx.Hash.Store(v)
+	return v
 }
 
+// HeaderHash calculate block's hash
 func HeaderHash(block *types.Block) (hash types.Hash) {
-	var defaultHash types.Hash
-	if !bytes.Equal(block.HeaderHash[:], defaultHash[:]) {
-		log.Info("block hash %x has exits.", block.HeaderHash)
+	//var defaultHash types.Hash
+	if !(block.HeaderHash == types.Hash{}) {
+		var hash types.Hash
 		copy(hash[:], block.HeaderHash[:])
-		return
+		return hash
 	}
-	jsonByte, _ := json.Marshal(block.Header)
-	sumByte := Sum(jsonByte)
-	copy(hash[:], sumByte)
-	return
+	return rlpHash(block.Header)
 }
 
 // BytesToAddress returns Address with value b.
