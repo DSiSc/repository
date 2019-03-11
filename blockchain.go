@@ -2,9 +2,7 @@ package blockchain
 
 import (
 	"fmt"
-	"github.com/DSiSc/blockchain/common"
 	"github.com/DSiSc/blockchain/config"
-	"github.com/DSiSc/blockchain/genesis"
 	"github.com/DSiSc/blockstore"
 	blkconf "github.com/DSiSc/blockstore/config"
 	"github.com/DSiSc/craft/log"
@@ -82,53 +80,8 @@ func InitBlockChain(chainConfig config.BlockChainConfig, eventCenter types.Event
 	}
 
 	globalEventCenter = eventCenter
-	// init genesis block
-	currentHeight := globalBlockStore.GetCurrentBlockHeight()
-	log.Info("Current block height %d", currentHeight)
-	if blockstore.INIT_BLOCK_HEIGHT == currentHeight {
-		log.Info("There are no blocks in block store, we will reset the chain to genesis state")
-		return ResetBlockChain(chainConfig.GenesisFile)
-	}
 	initialized = true
 	return nil
-}
-
-// reset blockchain to genesis state.
-func ResetBlockChain(genesisPath string) error {
-	log.Info("Start resetting chain with genesis block file: %s", genesisPath)
-	bc, err := NewBlockChainByHash(types.Hash{})
-	if err != nil {
-		log.Error("Failed to create init-state block chain, as: %v", err)
-		return err
-	}
-	// build genesis block
-	genesis, err := genesis.BuildGensisBlock(genesisPath)
-	if err != nil {
-		log.Error("Failed to build genesis block, as: %v", err)
-		return err
-	}
-
-	// record genesis account
-	for _, account := range genesis.GenesisAccounts {
-		if account.Balance.Cmp(big.NewInt(0)) == 1 || len(account.Code) != 0 {
-			bc.CreateAccount(account.Addr)
-			bc.SetBalance(account.Addr, account.Balance)
-			bc.SetCode(account.Addr, account.Code)
-		}
-	}
-	genesisStateRoot := bc.IntermediateRoot(false)
-
-	// write block to chain.
-	block := genesis.Block
-	block.Header.StateRoot = genesisStateRoot
-	block.HeaderHash = common.HeaderHash(block)
-	err = bc.WriteBlock(block)
-	if err != nil {
-		log.Error("Failed to write genesis block to block store, as:%v", err)
-		return err
-	} else {
-		return nil
-	}
 }
 
 // BlockChain is the chain manager.
@@ -211,9 +164,9 @@ func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipt
 func (blockChain *BlockChain) EventWriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt, emitCommitEvent bool) error {
 	log.Info("Start Writing block: %x, height: %d", block.HeaderHash, block.Header.Height)
 	// write state to database
-	stateRoot, err := blockChain.commit(false)
+	stateRoot, err := blockChain.Commit(false)
 	if err != nil {
-		log.Error("Failed to commit block %x's state root, block height %d, failed reason: %v", block.HeaderHash, block.Header.Height, err)
+		log.Error("Failed to Commit block %x's state root, block height %d, failed reason: %v", block.HeaderHash, block.Header.Height, err)
 		if block.Header.Height == blockstore.INIT_BLOCK_HEIGHT || !emitCommitEvent {
 			blockChain.eventCenter.Notify(types.EventBlockWriteFailed, err)
 		} else {
@@ -240,7 +193,7 @@ func (blockChain *BlockChain) EventWriteBlockWithReceipts(block *types.Block, re
 		return err
 	}
 
-	// send block commit event if it is not the genesis block.
+	// send block Commit event if it is not the genesis block.
 	if block.Header.Height == blockstore.INIT_BLOCK_HEIGHT || !emitCommitEvent {
 		blockChain.eventCenter.Notify(types.EventBlockWritten, block)
 	} else {
@@ -410,18 +363,18 @@ func (blockChain *BlockChain) AddLog(log *types.Log) {
 }
 
 // Commit writes the state to the underlying in-memory trie database.
-func (blockChain *BlockChain) commit(deleteEmptyObjects bool) (root types.Hash, err error) {
+func (blockChain *BlockChain) Commit(deleteEmptyObjects bool) (root types.Hash, err error) {
 	log.Info("Start committing statedb state to database")
-	//commit statedb
+	//Commit statedb
 	stateRoot, err := blockChain.state.Commit(false)
 	if err != nil {
-		log.Info("failed to commit statedb to MPT tree, as: %v", err)
+		log.Info("failed to Commit statedb to MPT tree, as: %v", err)
 		return types.Hash{}, err
 	}
-	// commit statedb to low level disk database
+	// Commit statedb to low level disk database
 	err = blockChain.state.Database().TrieDB().Commit(stateRoot, false)
 	if err != nil {
-		log.Info("failed to commit MPT tree database, as: %v", err)
+		log.Info("failed to Commit MPT tree database, as: %v", err)
 		return types.Hash{}, err
 	}
 	return stateRoot, nil

@@ -8,7 +8,6 @@ import (
 	"github.com/DSiSc/craft/types"
 	"github.com/DSiSc/monkey"
 	"github.com/stretchr/testify/assert"
-	"math"
 	"math/big"
 	"os"
 	"reflect"
@@ -37,6 +36,18 @@ func mockBlock() *types.Block {
 		Header: header,
 	}
 	return block
+}
+
+// mock write genesis block
+func mockWriteBlock(t *testing.T, bc *BlockChain) {
+	assert := assert.New(t)
+	block := mockBlock()
+	block.Header.Height = bc.GetCurrentBlockHeight() + 1
+	block.Header.StateRoot = bc.IntermediateRoot(false)
+	block.HeaderHash = common.HeaderHash(block)
+
+	err := bc.WriteBlock(block)
+	assert.Nil(err)
 }
 
 // mock block with txs
@@ -95,18 +106,6 @@ func TestInitBlockChain_WithFileDB(t *testing.T) {
 	assert.Nil(err)
 }
 
-// test reset chain
-func TestResetBlockChain(t *testing.T) {
-	assert := assert.New(t)
-	err := ResetBlockChain("")
-	assert.Nil(err)
-	bc, err := NewLatestStateBlockChain()
-	assert.Nil(err)
-	assert.NotNil(bc)
-	balance := bc.GetBalance(common.HexToAddress("0x0000000000000000000000000000000000000000"))
-	assert.Equal(0, balance.Cmp(big.NewInt(math.MaxInt64)))
-}
-
 // test new latest blockchain
 func TestNewLatestStateBlockChain(t *testing.T) {
 	assert := assert.New(t)
@@ -121,6 +120,7 @@ func TestNewBlockChainByBlockHash(t *testing.T) {
 	bc, err := NewLatestStateBlockChain()
 	assert.Nil(err)
 	assert.NotNil(bc)
+	mockWriteBlock(t, bc)
 	currentBlock := bc.GetCurrentBlock()
 	blockHash := common.HeaderHash(currentBlock)
 	bc, err = NewBlockChainByBlockHash(blockHash)
@@ -135,6 +135,8 @@ func TestNewBlockChainByHash(t *testing.T) {
 	bc, err := NewLatestStateBlockChain()
 	assert.Nil(err)
 	assert.NotNil(bc)
+
+	mockWriteBlock(t, bc)
 	currentBlock := bc.GetCurrentBlock()
 	currentHash := currentBlock.Header.StateRoot
 	bc, err = NewBlockChainByHash(currentHash)
@@ -291,6 +293,18 @@ func TestBlockChain_AddLog(t *testing.T) {
 
 	savedLogs := bc.GetLogs(txHash)
 	assert.Equal(log, savedLogs[0])
+}
+
+func TestBlockChain_Commit(t *testing.T) {
+	assert := assert.New(t)
+	bc, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(bc)
+	addr := common.HexToAddress("0x0000000000000000000000000000000000000000")
+	bc.SetBalance(addr, big.NewInt(1000))
+	root, err := bc.Commit(false)
+	assert.Nil(err)
+	assert.Equal("b81511ed441590b825fe4471e6dd9ca10a5c47eba3dcc9e12bb1954025300270", fmt.Sprintf("%x", root))
 }
 
 // Sum returns the first 20 bytes of SHA256 of the bz.
