@@ -235,11 +235,13 @@ func (blockChain *BlockChain) GetBlockByHeight(height uint64) (*types.Block, err
 
 // GetCurrentBlock get current block.
 func (blockChain *BlockChain) GetCurrentBlock() *types.Block {
+	log.Debug("get current block.")
 	return blockChain.blockStore.GetCurrentBlock()
 }
 
 // GetCurrentBlockHeight get current block height.
 func (blockChain *BlockChain) GetCurrentBlockHeight() uint64 {
+	log.Debug("get current block height.")
 	return blockChain.blockStore.GetCurrentBlockHeight()
 }
 
@@ -348,6 +350,7 @@ func (blockChain *BlockChain) Finalise(deleteEmptyObjects bool) {
 // It is called in between transactions to get the root hash that
 // goes into transaction receipts.
 func (blockChain *BlockChain) IntermediateRoot(deleteEmptyObjects bool) types.Hash {
+	log.Debug("get intermediate root.")
 	return blockChain.state.IntermediateRoot(deleteEmptyObjects)
 }
 
