@@ -382,3 +382,13 @@ func (blockChain *BlockChain) Commit(deleteEmptyObjects bool) (root types.Hash, 
 	}
 	return stateRoot, nil
 }
+
+// Put add a record to database
+func (blockChain *BlockChain) Put(key []byte, value []byte) error {
+	return blockChain.blockStore.Put(key, value)
+}
+
+// Get get a record by key
+func (blockChain *BlockChain) Get(key []byte) ([]byte, error) {
+	return blockChain.blockStore.Get(key)
+}

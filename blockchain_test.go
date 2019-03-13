@@ -307,6 +307,22 @@ func TestBlockChain_Commit(t *testing.T) {
 	assert.Equal("b81511ed441590b825fe4471e6dd9ca10a5c47eba3dcc9e12bb1954025300270", fmt.Sprintf("%x", root))
 }
 
+// test put/get a record to/from blockchain
+func TestBlockChain_PutGet(t *testing.T) {
+	assert := assert.New(t)
+	blockChain, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(blockChain)
+	key := []byte("hello")
+	val := []byte("world")
+	err = blockChain.Put(key, val)
+	assert.Nil(err)
+
+	dbVal, err := blockChain.Get(key)
+	assert.Nil(err)
+	assert.Equal(val, dbVal)
+}
+
 // Sum returns the first 20 bytes of SHA256 of the bz.
 func sum(bz []byte) []byte {
 	hash := sha256.Sum256(bz)
