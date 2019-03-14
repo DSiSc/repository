@@ -225,11 +225,13 @@ func (blockChain *BlockChain) GetLogs(txHash types.Hash) []*types.Log {
 
 // GetBlockByHash retrieves a block from the local chain.
 func (blockChain *BlockChain) GetBlockByHash(hash types.Hash) (*types.Block, error) {
+	log.Debug("Get block by hash %x.", hash)
 	return blockChain.blockStore.GetBlockByHash(hash)
 }
 
 // GetBlockByHeight get block by height.
 func (blockChain *BlockChain) GetBlockByHeight(height uint64) (*types.Block, error) {
+	log.Debug("Get block by height %d.", height)
 	return blockChain.blockStore.GetBlockByHeight(height)
 }
 
@@ -276,6 +278,7 @@ func (blockChain *BlockChain) GetCodeHash(address types.Address) types.Hash {
 	return blockChain.state.GetCodeHash(address)
 }
 func (blockChain *BlockChain) GetCode(address types.Address) []byte {
+	log.Debug("get code by address %x.", address)
 	return blockChain.state.GetCode(address)
 }
 func (blockChain *BlockChain) SetCode(address types.Address, code []byte) {
