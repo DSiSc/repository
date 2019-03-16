@@ -10,6 +10,8 @@ import (
 	"github.com/DSiSc/craft/types"
 	"github.com/DSiSc/statedb-NG"
 	"github.com/DSiSc/statedb-NG/ethdb"
+	"github.com/DSiSc/statedb-NG/ethdb/leveldb"
+	"github.com/DSiSc/statedb-NG/ethdb/memorydb"
 	"math/big"
 	"sync"
 )
@@ -46,7 +48,7 @@ func InitBlockChain(chainConfig config.BlockChainConfig, eventCenter types.Event
 			return fmt.Errorf("statedb path should be different with blockdb path")
 		}
 		// create statedb low level database.
-		levelDB, err := ethdb.NewLDBDatabase(chainConfig.StateDataPath, 0, 0)
+		levelDB, err := leveldb.New(chainConfig.StateDataPath, 0, 0, "")
 		if err != nil {
 			log.Error("Failed to create levelDB for Statedb, as: %v", err)
 			return err
@@ -63,7 +65,7 @@ func InitBlockChain(chainConfig config.BlockChainConfig, eventCenter types.Event
 		stateDiskDB = levelDB
 		globalBlockStore = bstore
 	case PLUGIN_MEMDB:
-		stateDiskDB = ethdb.NewMemDatabase()
+		stateDiskDB = memorydb.New()
 		// create blockstore
 		bstore, err := blockstore.NewBlockStore(&blkconf.BlockStoreConfig{
 			PluginName: PLUGIN_MEMDB,
@@ -394,4 +396,15 @@ func (blockChain *BlockChain) Put(key []byte, value []byte) error {
 // Get get a record by key
 func (blockChain *BlockChain) Get(key []byte) ([]byte, error) {
 	return blockChain.blockStore.Get(key)
+}
+
+// GetCommittedState retrieves a value from the given account's committed storage trie.
+func (blockChain *BlockChain) GetCommittedState(addr types.Address, hash types.Hash) types.Hash {
+	return blockChain.state.GetCommittedState(addr, hash)
+}
+
+// SubRefund removes gas from the refund counter.
+// This method will panic if the refund counter goes below zero
+func (blockChain *BlockChain) SubRefund(gas uint64) {
+	blockChain.state.SubRefund(gas)
 }
