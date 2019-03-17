@@ -159,6 +159,7 @@ func (blockChain *BlockChain) GetTransactionByHash(hash types.Hash) (*types.Tran
 
 // WriteBlock write the block and relative receipts to database. return error if write failed.
 func (blockChain *BlockChain) WriteBlockWithReceipts(block *types.Block, receipts []*types.Receipt) error {
+	log.Debug("write block %x with receipt.", block.HeaderHash)
 	return blockChain.EventWriteBlockWithReceipts(block, receipts, true)
 }
 
