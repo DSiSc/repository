@@ -18,7 +18,7 @@ import (
 
 // global disk database instance
 var (
-	lock              sync.Mutex
+	lock              sync.RWMutex
 	initialized       bool
 	stateDiskDB       ethdb.Database         = nil
 	globalBlockStore  *blockstore.BlockStore = nil
@@ -140,6 +140,8 @@ func NewBlockChainByHash(root types.Hash) (*BlockChain, error) {
 		log.Error("Failed to create statedb, as: %v ", err)
 		return nil, fmt.Errorf("Failed to create statedb, as: %v ", err)
 	}
+	lock.RLock()
+	defer lock.RUnlock()
 	return &BlockChain{
 		state:       stateDB,
 		blockStore:  globalBlockStore,
