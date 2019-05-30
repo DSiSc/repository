@@ -401,6 +401,11 @@ func (blockChain *BlockChain) Get(key []byte) ([]byte, error) {
 	return blockChain.blockStore.Get(key)
 }
 
+// Delete removes the key from the key-value data store.
+func (blockChain *BlockChain) Delete(key []byte) error {
+	return blockChain.blockStore.Delete(key)
+}
+
 // GetCommittedState retrieves a value from the given account's committed storage trie.
 func (blockChain *BlockChain) GetCommittedState(addr types.Address, hash types.Hash) types.Hash {
 	return blockChain.state.GetCommittedState(addr, hash)

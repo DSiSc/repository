@@ -323,6 +323,28 @@ func TestBlockChain_PutGet(t *testing.T) {
 	assert.Equal(val, dbVal)
 }
 
+// test delete a record from blockchain
+func TestBlockChain_Delete(t *testing.T) {
+	assert := assert.New(t)
+	blockChain, err := NewLatestStateBlockChain()
+	assert.Nil(err)
+	assert.NotNil(blockChain)
+	key := []byte("hello")
+	val := []byte("world")
+	err = blockChain.Put(key, val)
+	assert.Nil(err)
+
+	dbVal, err := blockChain.Get(key)
+	assert.Nil(err)
+	assert.Equal(val, dbVal)
+
+	err = blockChain.Delete(key)
+	assert.Nil(err)
+
+	_, err = blockChain.Get(key)
+	assert.NotNil(err)
+}
+
 // Sum returns the first 20 bytes of SHA256 of the bz.
 func sum(bz []byte) []byte {
 	hash := sha256.Sum256(bz)
