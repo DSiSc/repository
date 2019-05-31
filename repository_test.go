@@ -109,7 +109,7 @@ func TestInitRepository_WithFileDB(t *testing.T) {
 // test new latest repository
 func TestNewLatestStateRepository(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 }
@@ -117,7 +117,7 @@ func TestNewLatestStateRepository(t *testing.T) {
 // test new repository by block hash
 func TestNewRepositoryByBlockHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 	mockWriteBlock(t, bc)
@@ -132,7 +132,7 @@ func TestNewRepositoryByBlockHash(t *testing.T) {
 // test new repository by hash
 func TestNewRepositoryByHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -147,7 +147,7 @@ func TestNewRepositoryByHash(t *testing.T) {
 // test write block
 func TestRepository_WriteBlock(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -164,7 +164,7 @@ func TestRepository_WriteBlock(t *testing.T) {
 // test write block with receipts
 func TestRepository_WriteBlockWithReceipts(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -182,7 +182,7 @@ func TestRepository_WriteBlockWithReceipts(t *testing.T) {
 // test write block with receipts
 func TestRepository_EventWriteBlockWithReceipts(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -213,7 +213,7 @@ func TestRepository_EventWriteBlockWithReceipts(t *testing.T) {
 // test get transaction by hash
 func TestRepository_GetTransactionByHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -234,7 +234,7 @@ func TestRepository_GetTransactionByHash(t *testing.T) {
 // test get receipt by tx hash
 func TestRepository_GetReceiptByTxHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -256,7 +256,7 @@ func TestRepository_GetReceiptByTxHash(t *testing.T) {
 // test get receipts by block hash
 func TestRepository_GetReceiptByBlockHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -278,7 +278,7 @@ func TestRepository_GetReceiptByBlockHash(t *testing.T) {
 // test add contract execution log
 func TestRepository_AddLog(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -297,7 +297,7 @@ func TestRepository_AddLog(t *testing.T) {
 
 func TestRepository_Commit(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateRespository()
+	bc, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 	addr := common.HexToAddress("0x0000000000000000000000000000000000000000")
@@ -310,7 +310,7 @@ func TestRepository_Commit(t *testing.T) {
 // test put/get a record to/from repository
 func TestRepository_PutGet(t *testing.T) {
 	assert := assert.New(t)
-	blockChain, err := NewLatestStateRespository()
+	blockChain, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(blockChain)
 	key := []byte("hello")
@@ -326,7 +326,7 @@ func TestRepository_PutGet(t *testing.T) {
 // test delete a record from repository
 func TestRepository_Delete(t *testing.T) {
 	assert := assert.New(t)
-	blockChain, err := NewLatestStateRespository()
+	blockChain, err := NewLatestStateRepository()
 	assert.Nil(err)
 	assert.NotNil(blockChain)
 	key := []byte("hello")

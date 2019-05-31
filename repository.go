@@ -97,8 +97,8 @@ type Repository struct {
 	currentBlock *types.Block
 }
 
-// NewLatestStateRespository create a repository with latest state hash.
-func NewLatestStateRespository() (*Repository, error) {
+// NewLatestStateRepository create a repository with latest state hash.
+func NewLatestStateRepository() (*Repository, error) {
 	log.Debug("Create block chain at the latest height")
 	if stateDiskDB == nil || globalBlockStore == nil {
 		log.Error("Repository have not been initialized")
