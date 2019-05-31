@@ -1,12 +1,12 @@
-package blockchain
+package repository
 
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/DSiSc/blockchain/common"
-	"github.com/DSiSc/blockchain/config"
 	"github.com/DSiSc/craft/types"
 	"github.com/DSiSc/monkey"
+	"github.com/DSiSc/repository/common"
+	"github.com/DSiSc/repository/config"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"os"
@@ -16,12 +16,12 @@ import (
 
 func TestMain(m *testing.M) {
 	// init event center
-	chainConfig := config.BlockChainConfig{
+	chainConfig := config.RepositoryConfig{
 		PluginName:    PLUGIN_MEMDB,
 		StateDataPath: "/tmp/state",
 		BlockDataPath: "/tmp/block",
 	}
-	err := InitBlockChain(chainConfig, &eventCenter{})
+	err := InitRepository(chainConfig, &eventCenter{})
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
@@ -39,7 +39,7 @@ func mockBlock() *types.Block {
 }
 
 // mock write genesis block
-func mockWriteBlock(t *testing.T, bc *BlockChain) {
+func mockWriteBlock(t *testing.T, bc *Repository) {
 	assert := assert.New(t)
 	block := mockBlock()
 	block.Header.Height = bc.GetCurrentBlockHeight() + 1
@@ -82,72 +82,72 @@ func mockReceipts() []*types.Receipt {
 	return []*types.Receipt{&receipt}
 }
 
-// test init blockchain with memory database.
+// test init repository with memory database.
 func TestInitBlockChain_WithMemDB(t *testing.T) {
 	assert := assert.New(t)
-	chainConfig := config.BlockChainConfig{
+	chainConfig := config.RepositoryConfig{
 		PluginName:    PLUGIN_MEMDB,
 		StateDataPath: "",
 		BlockDataPath: "",
 	}
-	err := InitBlockChain(chainConfig, &eventCenter{})
+	err := InitRepository(chainConfig, &eventCenter{})
 	assert.Nil(err)
 }
 
-// test init blockchain with file database.
-func TestInitBlockChain_WithFileDB(t *testing.T) {
+// test init repository with file database.
+func TestInitRepository_WithFileDB(t *testing.T) {
 	assert := assert.New(t)
-	chainConfig := config.BlockChainConfig{
+	chainConfig := config.RepositoryConfig{
 		PluginName:    PLUGIN_LEVELDB,
 		StateDataPath: "/tmp/state",
 		BlockDataPath: "/tmp/block",
 	}
-	err := InitBlockChain(chainConfig, &eventCenter{})
+	err := InitRepository(chainConfig, &eventCenter{})
 	assert.Nil(err)
 }
 
-// test new latest blockchain
-func TestNewLatestStateBlockChain(t *testing.T) {
+// test new latest repository
+func TestNewLatestStateRepository(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 }
 
-// test new blockchain by block hash
-func TestNewBlockChainByBlockHash(t *testing.T) {
+// test new repository by block hash
+func TestNewRepositoryByBlockHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 	mockWriteBlock(t, bc)
 	currentBlock := bc.GetCurrentBlock()
 	blockHash := common.HeaderHash(currentBlock)
-	bc, err = NewBlockChainByBlockHash(blockHash)
+	bc, err = NewRepositoryByBlockHash(blockHash)
 	assert.Nil(err)
 	assert.NotNil(bc)
 	assert.Equal(currentBlock.Header.StateRoot, bc.IntermediateRoot(false))
 }
 
-// test new blockchain by hash
-func TestNewBlockChainByHash(t *testing.T) {
+// test new repository by hash
+func TestNewRepositoryByHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
 	mockWriteBlock(t, bc)
 	currentBlock := bc.GetCurrentBlock()
 	currentHash := currentBlock.Header.StateRoot
-	bc, err = NewBlockChainByHash(currentHash)
+	bc, err = NewRepositoryByHash(currentHash)
 	assert.Nil(err)
 	assert.NotNil(bc)
 }
 
 // test write block
-func TestBlockChain_WriteBlock(t *testing.T) {
+func TestRepository_WriteBlock(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -162,9 +162,9 @@ func TestBlockChain_WriteBlock(t *testing.T) {
 }
 
 // test write block with receipts
-func TestBlockChain_WriteBlockWithReceipts(t *testing.T) {
+func TestRepository_WriteBlockWithReceipts(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -180,9 +180,9 @@ func TestBlockChain_WriteBlockWithReceipts(t *testing.T) {
 }
 
 // test write block with receipts
-func TestBlockChain_EventWriteBlockWithReceipts(t *testing.T) {
+func TestRepository_EventWriteBlockWithReceipts(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -211,9 +211,9 @@ func TestBlockChain_EventWriteBlockWithReceipts(t *testing.T) {
 }
 
 // test get transaction by hash
-func TestBlockChain_GetTransactionByHash(t *testing.T) {
+func TestRepository_GetTransactionByHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -232,9 +232,9 @@ func TestBlockChain_GetTransactionByHash(t *testing.T) {
 }
 
 // test get receipt by tx hash
-func TestBlockChain_GetReceiptByTxHash(t *testing.T) {
+func TestRepository_GetReceiptByTxHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -254,9 +254,9 @@ func TestBlockChain_GetReceiptByTxHash(t *testing.T) {
 }
 
 // test get receipts by block hash
-func TestBlockChain_GetReceiptByBlockHash(t *testing.T) {
+func TestRepository_GetReceiptByBlockHash(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -276,9 +276,9 @@ func TestBlockChain_GetReceiptByBlockHash(t *testing.T) {
 }
 
 // test add contract execution log
-func TestBlockChain_AddLog(t *testing.T) {
+func TestRepository_AddLog(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 
@@ -295,9 +295,9 @@ func TestBlockChain_AddLog(t *testing.T) {
 	assert.Equal(log, savedLogs[0])
 }
 
-func TestBlockChain_Commit(t *testing.T) {
+func TestRepository_Commit(t *testing.T) {
 	assert := assert.New(t)
-	bc, err := NewLatestStateBlockChain()
+	bc, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(bc)
 	addr := common.HexToAddress("0x0000000000000000000000000000000000000000")
@@ -307,10 +307,10 @@ func TestBlockChain_Commit(t *testing.T) {
 	assert.Equal("b81511ed441590b825fe4471e6dd9ca10a5c47eba3dcc9e12bb1954025300270", fmt.Sprintf("%x", root))
 }
 
-// test put/get a record to/from blockchain
-func TestBlockChain_PutGet(t *testing.T) {
+// test put/get a record to/from repository
+func TestRepository_PutGet(t *testing.T) {
 	assert := assert.New(t)
-	blockChain, err := NewLatestStateBlockChain()
+	blockChain, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(blockChain)
 	key := []byte("hello")
@@ -323,10 +323,10 @@ func TestBlockChain_PutGet(t *testing.T) {
 	assert.Equal(val, dbVal)
 }
 
-// test delete a record from blockchain
-func TestBlockChain_Delete(t *testing.T) {
+// test delete a record from repository
+func TestRepository_Delete(t *testing.T) {
 	assert := assert.New(t)
-	blockChain, err := NewLatestStateBlockChain()
+	blockChain, err := NewLatestStateRespository()
 	assert.Nil(err)
 	assert.NotNil(blockChain)
 	key := []byte("hello")

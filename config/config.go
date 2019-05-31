@@ -1,7 +1,7 @@
 package config
 
-// BlockChainConfig blockchain config.
-type BlockChainConfig struct {
+// RepositoryConfig repository config.
+type RepositoryConfig struct {
 	PluginName    string
 	StateDataPath string
 	BlockDataPath string
