@@ -300,11 +300,19 @@ func (repo *Repository) GetRefund() uint64 {
 	return repo.state.GetRefund()
 }
 
-func (repo *Repository) GetState(address types.Address, bhash types.Hash) types.Hash {
+func (repo *Repository) GetHashTypeState(address types.Address, bhash types.Hash) types.Hash {
+	return repo.state.GetHashTypeState(address, bhash)
+}
+
+func (repo *Repository) GetState(address types.Address, bhash types.Hash) []byte {
 	return repo.state.GetState(address, bhash)
 }
 
-func (repo *Repository) SetState(address types.Address, key, value types.Hash) {
+func (repo *Repository) SetHashTypeState(address types.Address, key, value types.Hash) {
+	repo.state.SetHashTypeState(address, key, value)
+}
+
+func (repo *Repository) SetState(address types.Address, key types.Hash, value []byte) {
 	repo.state.SetState(address, key, value)
 }
 
@@ -406,8 +414,13 @@ func (repo *Repository) Delete(key []byte) error {
 	return repo.blockStore.Delete(key)
 }
 
-// GetCommittedState retrieves a value from the given account's committed storage trie.
-func (repo *Repository) GetCommittedState(addr types.Address, hash types.Hash) types.Hash {
+// GetCommittedHashTypeState retrieves a value from the given account's committed storage trie.
+func (repo *Repository) GetCommittedHashTypeState(addr types.Address, hash types.Hash) types.Hash {
+	return repo.state.GetCommittedHashTypeState(addr, hash)
+}
+
+// GetCommittedHashTypeState retrieves a value from the given account's committed storage trie.
+func (repo *Repository) GetCommittedState(addr types.Address, hash types.Hash) []byte {
 	return repo.state.GetCommittedState(addr, hash)
 }
 
